@@ -24,6 +24,21 @@ function save() {
     storage.populateStorage('projects', projects);
 };
 
+function loadStoredProjects() {
+    const storedProjects = storage.retrieveStorage("projects");
+
+    if (!storedProjects) return;
+
+    storedProjects.forEach(storedProject => {
+        const newProject = projectManager.createProject(storedProject.name);
+        const storedTasks = storedProject.tasks;
+
+        storedTasks.forEach(storedTask => {
+            newProject.createTask(storedTask.name, storedTask.description, storedTask.status);
+        })
+    });
+};
+
 const project = (name) => {
     let id = idCounter.generateProjectId();
     const tasks = [];
@@ -112,7 +127,15 @@ const projectManager = (() => {
         return false;
     };
 
-    return { projects, getAllProjects, createProject, getProjectById, updateProjectById, deleteProjectById }
+    const init = () => {
+        loadStoredProjects();
+
+        if (getAllProjects().length === 0) {
+            createProject("Default Project");
+        }
+    };
+
+    return { projects, init, getAllProjects, createProject, getProjectById, updateProjectById, deleteProjectById }
 })();
 
 export default projectManager;
